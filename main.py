@@ -19,8 +19,14 @@ def abcd(w):
         # print(df['datetime'])
 
         # x = pd.Serial([d.timestamp() for d in df['datetime']])
-        y = df['datetime'].apply(lambda t: t.timestamp())
-        x = df[['latitude', 'longitude']]
+        x = df[['datetime', 'speed']].copy()   # аргументы модели - время и скорость
+        x['datetime'] = [d.timestamp() for d in x['datetime']]
+        y = df[['latitude', 'longitude']] # координаты - зависимые переменные
+
+
+        # y = df['datetime'].apply(lambda t: t.timestamp())
+        # x = df[['latitude', 'longitude']]
+
 
 
         # y = df[['latitude', 'longitude']]
@@ -31,10 +37,10 @@ def abcd(w):
         model = LinearRegression()
         model.fit(x, y)
 
-        print(model.predict(x))
+        print(model.predict(x)) # попытка предсказаний
 
 
-consumer = KafkaConsumer('input1', bootstrap_servers=['gpbtask.fun:9092'])
+consumer = KafkaConsumer('input3', bootstrap_servers=['gpbtask.fun:9092'])
 window_size = 4
 window_slide = window_size//2
 window = {}
@@ -53,7 +59,7 @@ for msg in consumer:
     # print(" ".join([str(client_id), str(datetime), str(latitude), str(longitude), str(speed)]))
 
     if client_id not in window:
-        window[client_id] = {'datetime': [], 'latitude': [], 'longitude': []}
+        window[client_id] = {'datetime': [], 'latitude': [], 'longitude': [], 'speed': []}
         window['window_len'] = 0
 
     if window['window_len'] < window_size:
@@ -62,7 +68,7 @@ for msg in consumer:
         window[client_id]['latitude'].append(latitude)
         window[client_id]['longitude'].append(longitude)
         window['window_len'] += 1
-        # window[client_id]['speed'] = speed
+        window[client_id]['speed'].append(speed)
 
     elif window['window_len'] == window_size:
 
@@ -73,7 +79,7 @@ for msg in consumer:
             window[client_id]['latitude'].pop(0)
             window[client_id]['longitude'].pop(0)
             window['window_len'] -= 1
-            # window[client_id]['speed'].pop(0)
+            window[client_id]['speed'].pop(0)
     else:
         print("Something went wrong (Window size bigger than it should be)")
 

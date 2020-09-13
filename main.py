@@ -19,8 +19,8 @@ def abcd(w):
         # print(df['datetime'])
 
         # x = pd.Serial([d.timestamp() for d in df['datetime']])
-        x = df['datetime'].apply(lambda t: t.timestamp())
-        y = df['latitude']
+        y = df['datetime'].apply(lambda t: t.timestamp())
+        x = df[['latitude', 'longitude']]
 
 
         # y = df[['latitude', 'longitude']]
